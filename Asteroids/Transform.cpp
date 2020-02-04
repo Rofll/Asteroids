@@ -1,4 +1,5 @@
 #include "Transform.h"
+#include <algorithm>
 
 Transform::Transform(Transform* parent)
 {
@@ -59,15 +60,8 @@ void Transform::AddChild(Transform* child)
 
 void Transform::DetachChild(Transform* child)
 {
-	for (int i = 0; i < childs.size(); i++)
-	{
-		if (childs[i] == child)
-		{
-			child->SetParent(nullptr);
-			childs.erase(childs.begin() + i);
-			break;
-		}
-	}
+	child->SetParent(nullptr);
+	childs.erase(std::remove(childs.begin(), childs.end(), child), childs.end());
 }
 
 std::vector<Transform*> Transform::GetChilds()
