@@ -9,8 +9,8 @@ struct Vector2
 	Vector2 operator- (Vector2 const& vector);
 	Vector2 operator* (float const& value);
 
-	//static const Vector2 zero;
-	//static const Vector2 one;
+	static const Vector2 zero;
+	static const Vector2 one;
 
 	float x;
 	float y;

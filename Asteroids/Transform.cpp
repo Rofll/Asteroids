@@ -11,7 +11,21 @@ Transform::Transform(Transform* parent)
 
 Transform::~Transform()
 {
-	
+	if (parent != nullptr)
+	{
+		parent->DetachChild(this);
+	}
+
+	parent = nullptr;
+
+	for (int i = 0; i < childs.size(); i++)
+	{
+		delete childs[i];
+
+		childs[i] = nullptr;
+	}
+
+	childs.clear();
 }
 
 void Transform::SetParent(Transform* parent)
