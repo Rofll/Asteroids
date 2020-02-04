@@ -5,11 +5,22 @@
 class Time
 {
 public:
-	static float deltaTime;
-	static void CalculateDeltaTime();
+    static Time& instance()
+    {
+        static Time time;
+        return time;
+    }
+
+	float deltaTime;
+	void CalculateDeltaTime();
 
 private:
-	static float previousTime;
-	static float currentTime;
-};
+    Time() {};
+    ~Time() {};
 
+    Time(Time const&) = delete;
+    Time& operator= (Time const&) = delete;
+
+    float previousTime;
+    float currentTime;
+};

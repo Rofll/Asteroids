@@ -1,9 +1,5 @@
 #include "Time.h"
 
-float Time::previousTime;
-float Time::currentTime;
-float Time::deltaTime;
-
 void Time::CalculateDeltaTime()
 {
 	previousTime = currentTime;

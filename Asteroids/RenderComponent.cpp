@@ -15,7 +15,7 @@ RenderComponent::RenderComponent(const char* spritePath, int* xPosition, int* yP
 
 RenderComponent::~RenderComponent()
 {
-	delete sprite;
+	destroySprite(sprite);
 
 	sprite = nullptr;
 }

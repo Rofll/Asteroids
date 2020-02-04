@@ -4,7 +4,7 @@
 
 #include "Framework.h"
 
-class RenderComponent : BaseComponent
+class RenderComponent : public BaseComponent
 {
 public:
 	RenderComponent();
