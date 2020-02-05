@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <cmath>
 #include "Actor.h"
+#include "Transform.h"
 
 #include <vector>
 
@@ -17,9 +18,27 @@ class MyFramework : public Framework {
 
 public:
 
+	Transform* rootTransform;
+
 	MyFramework()
 	{
-		printf("Hello!");
+		printf("Hello!\n");
+
+		rootTransform = new Transform(nullptr);
+		
+		rootTransform->localPosition = Vector2::zero;
+
+		Transform* plane = new Transform(rootTransform);
+
+		Transform* plane2 = new Transform(plane);
+
+		plane->localPosition = Vector2::one;
+		
+		plane2->localPosition = Vector2::zero;
+
+		Vector2 asd = plane2->GetWorldPosition();
+
+		printf("%f %f\n", asd.x, asd.y);
 	}
 
 	SpaceSheep* spaceSheep;

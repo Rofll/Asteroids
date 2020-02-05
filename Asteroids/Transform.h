@@ -23,9 +23,10 @@ public:
 
 	Vector2 GetWorldPosition();
 
-private:
+protected:
 	Transform* parent;
 
+private:
 	std::vector<Transform*> childs;
 	
 };

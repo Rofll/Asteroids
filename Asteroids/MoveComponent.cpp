@@ -107,7 +107,7 @@ void MoveComponent::Tick()
 	//}
 
 	//printf("%f\n", currentSpeedX);
-	printf("%f\n", currentSpeedY);
+	//printf("%f\n", currentSpeedY);
 
 	*xPosition += std::round(currentSpeedX);
 	*yPosition += std::round(currentSpeedY);

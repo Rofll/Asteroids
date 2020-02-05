@@ -25,15 +25,15 @@ Transform::~Transform()
 
 		childs[i] = nullptr;
 	}
-
-	childs.clear();
 }
 
 void Transform::SetParent(Transform* parent)
 {
+	printf("%i\n", (parent == nullptr));
+
 	if (parent != nullptr)
 	{
-		this->parent->AddChild(this);
+		parent->AddChild(this);
 	}
 
 	else
@@ -54,7 +54,7 @@ void Transform::AddChild(Transform* child)
 		return;
 	}
 
-	child->SetParent(this);
+	child->parent = this;
 	childs.push_back(child);
 }
 
@@ -71,8 +71,10 @@ std::vector<Transform*> Transform::GetChilds()
 
 Vector2 Transform::GetWorldPosition()
 {
+	printf("%i\n", (parent == nullptr));
+
 	Transform* tmp = parent;
-	Vector2 vector = Vector2(0, 0);
+	Vector2 vector = localPosition;
 
 	while (tmp != nullptr)
 	{
