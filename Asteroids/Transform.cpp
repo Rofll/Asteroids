@@ -3,11 +3,14 @@
 
 Transform::Transform(Transform* parent)
 {
+
+	printf("WTF!!!\n");
+
 	SetParent(parent);
 
-	this->localPosition = Vector2(0, 0);
-
 	childs = std::vector<Transform*>();
+
+	this->localPosition = Vector2(0, 0);
 }
 
 Transform::~Transform()
@@ -29,8 +32,6 @@ Transform::~Transform()
 
 void Transform::SetParent(Transform* parent)
 {
-	printf("%i\n", (parent == nullptr));
-
 	if (parent != nullptr)
 	{
 		parent->AddChild(this);
@@ -71,13 +72,12 @@ std::vector<Transform*> Transform::GetChilds()
 
 Vector2 Transform::GetWorldPosition()
 {
-	printf("%i\n", (parent == nullptr));
-
 	Transform* tmp = parent;
 	Vector2 vector = localPosition;
 
 	while (tmp != nullptr)
 	{
+		printf("Calculate!\n");
 		vector += tmp->localPosition;
 		tmp = tmp->parent;
 	}

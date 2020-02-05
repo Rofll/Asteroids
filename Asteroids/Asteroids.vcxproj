@@ -144,6 +144,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="AbstractComponent.cpp" />
+    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="InputComponent.cpp" />
     <ClCompile Include="Map.cpp" />
@@ -156,7 +159,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="AbstractComponent.h" />
     <ClInclude Include="BaseComponent.h" />
+    <ClInclude Include="Collider.h" />
     <ClInclude Include="InputComponent.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MoveComponent.h" />

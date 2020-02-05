@@ -18,32 +18,12 @@ class MyFramework : public Framework {
 
 public:
 
-	Transform* rootTransform;
+	Actor* rootTransform;
 
 	MyFramework()
 	{
-		printf("Hello!\n");
 
-		rootTransform = new Transform(nullptr);
-		
-		rootTransform->localPosition = Vector2::zero;
-
-		Transform* plane = new Transform(rootTransform);
-
-		Transform* plane2 = new Transform(plane);
-
-		plane->localPosition = Vector2::one;
-		
-		plane2->localPosition = Vector2::zero;
-
-		Vector2 asd = plane2->GetWorldPosition();
-
-		printf("%f %f\n", asd.x, asd.y);
 	}
-
-	SpaceSheep* spaceSheep;
-	InputComponent* playerInput;
-	MoveComponent* playerMoveComponent;
 
 	virtual void PreInit(int& width, int& height, bool& fullscreen)
 	{
@@ -54,11 +34,8 @@ public:
 
 	virtual bool Init() 
 	{
-		spaceSheep = new SpaceSheep("data/spaceship.png", 0, 0);
+		rootTransform = new Actor(nullptr);
 
-		playerMoveComponent = spaceSheep->GetMoveComponent();
-
-		//playerInput = spaceSheep->GetInputComponent();
 		return true;
 	}
 
@@ -73,7 +50,7 @@ public:
 
 		Time::instance().CalculateDeltaTime();
 
-		spaceSheep->Tick();
+		//spaceSheep->Tick();
 
 		return false;
 	}
@@ -92,22 +69,22 @@ public:
 	{
 		if (k == FRKey::UP)
 		{
-			playerMoveComponent->MoveUp();
+			//playerMoveComponent->MoveUp();
 		}
 
 		if (k == FRKey::DOWN)
 		{
-			playerMoveComponent->MoveDown();
+			//playerMoveComponent->MoveDown();
 		}
 
 		if (k == FRKey::RIGHT)
 		{
-			playerMoveComponent->MoveRight();
+			//playerMoveComponent->MoveRight();
 		}
 
 		if (k == FRKey::LEFT)
 		{
-			playerMoveComponent->MoveLeft();
+			//playerMoveComponent->MoveLeft();
 		}
 	}
 
@@ -115,22 +92,22 @@ public:
 	{
 		if (k == FRKey::UP)
 		{
-			playerMoveComponent->StopMoveUp();
+			//playerMoveComponent->StopMoveUp();
 		}
 
 		if (k == FRKey::DOWN)
 		{
-			playerMoveComponent->StopMoveDown();
+			//playerMoveComponent->StopMoveDown();
 		}
 
 		if (k == FRKey::RIGHT)
 		{
-			playerMoveComponent->StopMoveRight();
+			//playerMoveComponent->StopMoveRight();
 		}
 
 		if (k == FRKey::LEFT)
 		{
-			playerMoveComponent->StopMoveLeft();
+			//playerMoveComponent->StopMoveLeft();
 		}
 	}
 	

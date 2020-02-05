@@ -3,23 +3,12 @@
 
 SpaceSheep::SpaceSheep()
 {
-	xPosition = 0;
-	yPosition = 0;
+
 }
 
-SpaceSheep::SpaceSheep(const char* spritePass, int xPosition, int yPosition)
+SpaceSheep::SpaceSheep(const char* spritePass)
 {
-	this->xPosition = xPosition;
-	this->yPosition = yPosition;
 
-	renderer = new RenderComponent(spritePass,
-								&this->xPosition, &this->yPosition);
-
-	moveComponent = new MoveComponent(&this->xPosition, &this->yPosition,
-									&this->minSpeed, &this->maxSpeed,
-									&this->acceleration, &this->deaceleration);
-
-	//inputComponent = new InputComponent();
 }
 
 SpaceSheep::~SpaceSheep()
@@ -29,18 +18,18 @@ SpaceSheep::~SpaceSheep()
 	renderer = nullptr;
 }
 
-void SpaceSheep::Tick()
-{
-	if (renderer)
-	{
-		renderer->Tick();
-	}
-
-	if (moveComponent)
-	{
-		moveComponent->Tick();
-	}
-}
+//void SpaceSheep::Tick()
+//{
+//	if (renderer)
+//	{
+//		renderer->Tick();
+//	}
+//
+//	if (moveComponent)
+//	{
+//		moveComponent->Tick();
+//	}
+//}
 
 MoveComponent* SpaceSheep::GetMoveComponent()
 {

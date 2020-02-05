@@ -4,7 +4,7 @@
 
 #include "RenderComponent.h"
 
-class Map : public Actor
+class Map
 {
 public:
 	Map();
@@ -15,7 +15,5 @@ public:
 
 private:
 	const char* spritePass;
-
-	RenderComponent* renderer;
 };
 

@@ -5,15 +5,15 @@
 #include "MoveComponent.h"
 #include "InputComponent.h"
 
-class SpaceSheep : public Actor
+class SpaceSheep
 {
 public:
 	SpaceSheep();
-	SpaceSheep(const char* spritePass, int xPosition, int yPosition);
+	SpaceSheep(const char* spritePass);
 	~SpaceSheep();
 	
 	
-	void Tick() override;
+	//void Tick() override;
 
 	MoveComponent* GetMoveComponent();
 

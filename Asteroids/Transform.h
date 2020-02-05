@@ -2,11 +2,12 @@
 
 #include <vector>
 #include "Vector2.h"
+#include "AbstractComponent.h"
 
-class Transform
+class Transform : public AbstractComponent
 {
 public:
-	Transform(Transform* parent);
+	explicit Transform(Transform* parent);
 	~Transform();
 
 	Vector2 localPosition;
