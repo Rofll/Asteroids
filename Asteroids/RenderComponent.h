@@ -1,24 +1,19 @@
 #pragma once
 
-#include "BaseComponent.h"
-
 #include "Framework.h"
+#include "AbstractComponent.h"
 
-class RenderComponent : public BaseComponent
+class RenderComponent : public AbstractComponent
 {
 public:
-	RenderComponent();
-	RenderComponent(const char* spritePath, int* xPosition, int* yPosition);
+	RenderComponent(const char* spritePath);
 	~RenderComponent();
 
-	void Tick() override;
-	void Draw(int x, int y);
-	void CreateSprite(const char* pass);
+	Sprite* GetSprite();
 
 private:
-	Sprite* sprite;
+	void CreateSprite(const char* pass);
 
-	int* xPosition;
-	int* yPosition;
+	Sprite* sprite;
 };
 

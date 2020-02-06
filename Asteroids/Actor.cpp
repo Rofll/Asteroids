@@ -1,12 +1,13 @@
 #include "Actor.h"
 
-Actor::Actor(Transform* parent)
+Actor::Actor(Transform* parent, World* world)
 {
-	printf("AAAAAAAAA\n");
+	this->world = world;
 
 	Transform* transform = new Transform(parent);
-
+	
 	AddComponent<Transform>(transform);
+
 }
 
 Actor::~Actor()

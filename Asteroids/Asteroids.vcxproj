@@ -148,7 +148,6 @@
     <ClCompile Include="AbstractComponent.cpp" />
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="game.cpp" />
-    <ClCompile Include="InputComponent.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MoveComponent.cpp" />
     <ClCompile Include="RenderComponent.cpp" />
@@ -156,13 +155,12 @@
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vector2.cpp" />
+    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="AbstractComponent.h" />
-    <ClInclude Include="BaseComponent.h" />
     <ClInclude Include="Collider.h" />
-    <ClInclude Include="InputComponent.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MoveComponent.h" />
     <ClInclude Include="RenderComponent.h" />
@@ -170,6 +168,7 @@
     <ClInclude Include="Time.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vector2.h" />
+    <ClInclude Include="World.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

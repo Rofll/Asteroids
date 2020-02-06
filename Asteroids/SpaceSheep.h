@@ -3,7 +3,6 @@
 #include "Actor.h"
 #include "RenderComponent.h"
 #include "MoveComponent.h"
-#include "InputComponent.h"
 
 class SpaceSheep
 {

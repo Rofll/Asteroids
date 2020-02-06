@@ -2,14 +2,15 @@
 #include "SpaceSheep.h"
 #include "Time.h"
 
-#include "InputComponent.h"
+
 #include "MoveComponent.h"
 
 #include <stdio.h>
 #include <cmath>
 #include "Actor.h"
 #include "Transform.h"
-
+#include <vector>
+#include "World.h"
 #include <vector>
 
 
@@ -19,6 +20,9 @@ class MyFramework : public Framework {
 public:
 
 	Actor* rootTransform;
+	World* world;
+
+	std::vector<Actor*> actors;
 
 	MyFramework()
 	{
@@ -34,7 +38,11 @@ public:
 
 	virtual bool Init() 
 	{
-		rootTransform = new Actor(nullptr);
+		world = new World();
+
+		rootTransform = new Actor(nullptr, world);
+
+		actors.push_back(CreateActor(rootTransform->GetComponent<Transform>()));
 
 		return true;
 	}
@@ -44,12 +52,47 @@ public:
 
 	}
 
+	Actor* CreateActor(Transform* parent)
+	{
+		auto actor = new Actor(parent, world);
+		actor->AddComponent(new MoveComponent(Vector2(1.0, 1.0)));
+		actor->AddComponent(new RenderComponent("data/spaceship.png"));
+		return actor;
+	}
+
 	virtual bool Tick() 
 	{
         drawTestBackground();
 
 		Time::instance().CalculateDeltaTime();
 
+		std::vector<int> moveComponentIndexes, transformIndexes;
+
+		for (int i = 0; i < actors.size(); i++)
+		{
+			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<MoveComponent>())
+			{
+				moveComponentIndexes.push_back(actors[i]->GetComponentIndex<MoveComponent>());
+				transformIndexes.push_back(actors[i]->GetComponentIndex<Transform>());
+			}
+		}
+
+
+		Move(moveComponentIndexes, transformIndexes);
+
+		std::vector<int> renders, transforms;
+
+		for (int i = 0; i < actors.size(); i++)
+		{
+			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<RenderComponent>())
+			{
+				renders.push_back(actors[i]->GetComponentIndex<RenderComponent>());
+				transforms.push_back(actors[i]->GetComponentIndex<Transform>());
+			}
+		}
+
+
+		Render(renders, transforms);
 		//spaceSheep->Tick();
 
 		return false;
@@ -114,6 +157,29 @@ public:
 	virtual const char* GetTitle() override
 	{
 		return "asteroids";
+	}
+
+	void Move(std::vector<int> moveComponentIndexes, std::vector<int> transformIndexes)
+	{
+		std::vector<AbstractComponent*>* transforms = world->GetComponents<Transform>();
+		std::vector<AbstractComponent*>* moveComponents = world->GetComponents<MoveComponent>();
+
+		for (int i = 0; i < moveComponentIndexes.size() && i < transformIndexes.size(); i++)
+		{
+			(static_cast<Transform*>(transforms->at(transformIndexes[i])))->localPosition += (static_cast<MoveComponent*>(moveComponents->at(moveComponentIndexes[i])))->velocity;
+		}
+	}
+
+	void Render(std::vector<int> renderComponentIndexes, std::vector<int> transformIndexes)
+	{
+		std::vector<AbstractComponent*>* transforms = world->GetComponents<Transform>();
+		std::vector<AbstractComponent*>* renderers = world->GetComponents<RenderComponent>();
+
+		for (int i = 0; i < renderComponentIndexes.size() && i < transformIndexes.size(); i++)
+		{
+			Vector2 worldPosition = (static_cast<Transform*>(transforms->at(transformIndexes[i])))->GetWorldPosition();
+			drawSprite((static_cast<RenderComponent*>(renderers->at(renderComponentIndexes[i])))->GetSprite(), worldPosition.x, worldPosition.y);
+		}
 	}
 };
 

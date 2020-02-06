@@ -1,49 +1,15 @@
 #pragma once
 
-#include "BaseComponent.h"
+#include "AbstractComponent.h"
+#include "Transform.h"
+#include "Vector2.h"
 
-class MoveComponent : public BaseComponent
+class MoveComponent : public AbstractComponent
 {
 public:
-	MoveComponent();
-	MoveComponent(int* xPosition, int* yPosition, float* minSpeed,
-		float* maxSpeed, float* acceleration, float* deacceleration);
+	MoveComponent(Vector2 velocity);
 	~MoveComponent();
 
-	void MoveUp();
-	void MoveDown();
-	void MoveRight();
-	void MoveLeft();
-
-	void StopMoveUp();
-	void StopMoveDown();
-	void StopMoveRight();
-	void StopMoveLeft();
-
-	bool isMovingUp;
-	bool isMovingDown;
-	bool isMovingRight;
-	bool isMovingLeft;
-
-	void Tick() override;
-
-private:
-	int* xPosition;
-	int* yPosition;
-
-	float* minSpeed;
-	float* maxSpeed;
-
-	float* acceleration;
-	float* deacceleration;
-
-	int directionX;
-	int directionY;
-
-	int previousDirectionX;
-	int previousDirectionY;
-
-	float currentSpeedX;
-	float currentSpeedY;
+	Vector2 velocity;
 };
 

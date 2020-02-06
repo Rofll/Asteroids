@@ -1,0 +1,9 @@
+diff a/Asteroids/game.cpp b/Asteroids/game.cpp	(rejected hunks)
+@@ -34,7 +34,6 @@
+ 
+ 	virtual bool Init() 
+ 	{
+-		spaceSheep = new SpaceSheep("data/spaceship.png", 0, 0);
+ 		rootTransform = new Actor(nullptr);
+ 
+ 		return true;

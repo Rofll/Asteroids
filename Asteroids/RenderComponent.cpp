@@ -1,15 +1,6 @@
 #include "RenderComponent.h"
-
-RenderComponent::RenderComponent()
+RenderComponent::RenderComponent(const char* spritePath)
 {
-
-}
-
-RenderComponent::RenderComponent(const char* spritePath, int* xPosition, int* yPosition)
-{
-	this->xPosition = xPosition;
-	this->yPosition = yPosition;
-
 	CreateSprite(spritePath);
 }
 
@@ -20,17 +11,12 @@ RenderComponent::~RenderComponent()
 	sprite = nullptr;
 }
 
-void RenderComponent::Tick()
-{
-	Draw(*xPosition, *yPosition);
-}
-
-void RenderComponent::Draw(int x, int y)
-{
-	drawSprite(sprite, x, y);
-}
-
 void RenderComponent::CreateSprite(const char* pass)
 {
 	sprite = createSprite(pass);
+}
+
+Sprite* RenderComponent::GetSprite()
+{
+	return sprite;
 }

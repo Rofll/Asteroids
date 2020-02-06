@@ -7,33 +7,50 @@
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
+#include <vector>
+#include "World.h"
 
 class Actor
 {
 public:
 
-	Actor(Transform* parent);
+	Actor(Transform* parent, World* world);
 	~Actor();
 
 	template<class T = AbstractComponent>
 	T* GetComponent()
 	{
-		//printf("%s", typeid(components[typeid(T)]).name());
-
-		T* tmp = static_cast<T*>(components[typeid(T)]);
-
+		int index = components[typeid(T)];
+		T* tmp = static_cast<T*>(world->GetComponents<T>()->at(index));
 		return tmp;
-		//return nullptr;
 	}
 
 	template<typename T = AbstractComponent>
 	void AddComponent(T* component)
 	{
-		components[typeid(T)] = component;
+		if (!world->HasPull<T>())
+		{
+			world->CreateComponentsPull<T>();
+		}
+		auto list = world->GetComponents<T>();
+		
+		list->push_back(component);
+		components[typeid(T)] = list->size() - 1;
+	}
 
-		//printf("%s", typeid(component).name());
+	template<typename T = AbstractComponent>
+	bool HasComponent()
+	{
+		return components.find(typeid(T)) != components.end();
+	}
+
+	template<typename T = AbstractComponent>
+	int GetComponentIndex()
+	{
+		return components[typeid(T)];
 	}
 
 private:
-	std::unordered_map<std::type_index, AbstractComponent*> components;
+	World* world;
+	std::unordered_map<std::type_index, int> components;
 };
