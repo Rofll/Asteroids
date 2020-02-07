@@ -3,9 +3,6 @@
 
 Transform::Transform(Transform* parent)
 {
-
-	printf("WTF!!!\n");
-
 	SetParent(parent);
 
 	childs = std::vector<Transform*>();
@@ -77,7 +74,6 @@ Vector2 Transform::GetWorldPosition()
 
 	while (tmp != nullptr)
 	{
-		printf("Calculate!\n");
 		vector += tmp->localPosition;
 		tmp = tmp->parent;
 	}

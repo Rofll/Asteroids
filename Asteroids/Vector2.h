@@ -7,7 +7,15 @@ struct Vector2
 	Vector2 operator+ (Vector2 const& vector);
 	void operator+= (Vector2 const& vector);
 	Vector2 operator- (Vector2 const& vector);
+	void operator-= (Vector2 const& vector);
 	Vector2 operator* (float const& value);
+	Vector2 operator% (Vector2 const& value);
+	void operator%= (Vector2 const& value);
+
+	float Distance(Vector2 const& vector);
+	Vector2 WrapAround(Vector2 const& value);
+
+	Vector2 Normalized();
 
 	static const Vector2 zero;
 	static const Vector2 one;
@@ -24,6 +32,7 @@ struct Vector2Int
 	void operator+= (Vector2Int const& vector);
 	Vector2Int operator- (Vector2Int const& vector);
 	Vector2Int operator* (float const& value);
+
 
 	static const Vector2Int zero;
 	static const Vector2Int one;

@@ -1,7 +1,7 @@
 #include "RenderComponent.h"
-RenderComponent::RenderComponent(const char* spritePath)
+RenderComponent::RenderComponent(Sprite* sprite)
 {
-	CreateSprite(spritePath);
+	this->sprite = sprite;
 }
 
 RenderComponent::~RenderComponent()
@@ -11,10 +11,6 @@ RenderComponent::~RenderComponent()
 	sprite = nullptr;
 }
 
-void RenderComponent::CreateSprite(const char* pass)
-{
-	sprite = createSprite(pass);
-}
 
 Sprite* RenderComponent::GetSprite()
 {

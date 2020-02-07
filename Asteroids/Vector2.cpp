@@ -1,4 +1,5 @@
 #include "Vector2.h"
+#include <cmath>
 
 	Vector2::Vector2()
 	{
@@ -12,6 +13,34 @@
 		this->y = y;
 	}
 
+	Vector2 Vector2::Normalized()
+	{
+		return *this * (1 / sqrt(x * x + y * y));
+	}
+
+	float Vector2::Distance(Vector2 const& vector)
+	{
+		Vector2 diference = *this - vector;
+
+		return sqrt(diference.x * diference.x + diference.y * diference.y);
+	}
+
+	Vector2 Vector2::WrapAround(Vector2 const& value)
+	{
+		Vector2 vector2 = (*this) % value;
+		if (vector2.x < 0)
+		{
+			vector2.x = value.x + vector2.x;
+		}
+
+		if (vector2.y < 0)
+		{
+			vector2.y = value.y + vector2.y;
+		}
+
+		return vector2;
+	}
+
 	Vector2 Vector2::operator+ (Vector2 const& vector)
 	{
 		return Vector2(this->x + vector.x, this->y + vector.y);
@@ -23,6 +52,12 @@
 		this->y += vector.y;
 	}
 
+	void Vector2::operator-= (Vector2 const& vector)
+	{
+		this->x -= vector.x;
+		this->y -= vector.y;
+	}
+
 	Vector2 Vector2::operator- (Vector2 const& vector)
 	{
 		return Vector2(this->x - vector.x, this->y - vector.y);
@@ -32,6 +67,18 @@
 	{
 		return Vector2(this->x * value, this->y * value);
 	}
+
+	Vector2 Vector2::operator% (Vector2 const& value)
+	{
+		return Vector2(fmod(this->x, value.x), fmod(this->y,value.y));
+		
+	}
+	void Vector2::operator%= (Vector2 const& value)
+	{
+		this->x = fmod(this->x, value.x);
+		this->y = fmod(this->y, value.y);
+	}
+
 
 	const Vector2 Vector2::zero = Vector2(0, 0);
 	const Vector2 Vector2::one = Vector2(1, 1);

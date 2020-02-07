@@ -3,6 +3,7 @@
 #include <vector>
 #include "Vector2.h"
 #include "AbstractComponent.h"
+#include "MoveComponent.h"
 
 class Transform : public AbstractComponent
 {
