@@ -12,6 +12,12 @@ public:
 		return components[typeid(T)];
 	}
 
+	std::vector<AbstractComponent*>* GetComponents(std::type_index index)
+	{
+		return components[index];
+	}
+
+
 	template<typename T = AbstractComponent>
 	void CreateComponentsPull()
 	{

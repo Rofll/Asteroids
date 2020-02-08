@@ -12,7 +12,20 @@ Actor::Actor(Transform* parent, World* world)
 
 Actor::~Actor()
 {
+	if (components.empty())
+	{
+		return;
+	}
 
+	for (auto it = components.begin(); it != components.end(); ++it)
+	{
+		auto worldComponents = world->GetComponents(it->first);
+
+		delete (worldComponents->at(it->second));
+
+		(*worldComponents)[it->second] = nullptr;
+		//worldComponents->erase(worldComponents->begin() + it->second);
+	}
 }
 
 //template<class T>

@@ -18,6 +18,19 @@
 		return *this * (1 / sqrt(x * x + y * y));
 	}
 
+	void Vector2::Clamp(Vector2 max)
+	{
+		if (abs(this->x) > abs(max.x))
+		{
+			this->x = max.x * (this->x > 0 ? 1: -1);
+		}
+
+		if (abs(this->y) > abs(max.y))
+		{
+			this->y = max.y * (this->y > 0 ? 1 : -1);
+		}
+	}
+
 	float Vector2::Distance(Vector2 const& vector)
 	{
 		Vector2 diference = *this - vector;
@@ -66,6 +79,12 @@
 	Vector2 Vector2::operator* (float const& value)
 	{
 		return Vector2(this->x * value, this->y * value);
+	}
+
+	void Vector2::operator*= (Vector2 const& value)
+	{
+		this->x *= value.x;
+		this->y *= value.y;
 	}
 
 	Vector2 Vector2::operator% (Vector2 const& value)

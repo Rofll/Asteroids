@@ -9,6 +9,8 @@
 #include "MoveComponent.h"
 #include "AsteroidComponent.h"
 #include "ColliderComponent.h"
+#include "BulletComponent.h"
+#include "Input.h"
 
 #include "ColliderComponentData.h"
 
@@ -19,6 +21,8 @@
 #include <vector>
 #include "World.h"
 #include <vector>
+#include <algorithm>
+#include <set>
 
 #define M_PI 3.14159265
 
@@ -35,8 +39,19 @@ public:
 
 	Vector2 screenSize;
 
+	Input* input;
+		
 	const float minVelocity = 30;
 	const float maxVelocity = 50;
+
+	const float spaceShipSpeed = 100;
+	const float spaceShipDeaceleration = 2;
+
+	Sprite* spaceShipSprite;
+	Sprite* asteroidSprite;
+	Sprite* bulletSprite;
+
+	bool isFire = false;
 
 	std::vector<Actor*> actors;
 
@@ -56,6 +71,9 @@ public:
 	{
 		world = new World();
 
+		input = new Input();
+
+
 		std::srand(unsigned(std::time(0)));
 
 		int screenWidth;
@@ -67,12 +85,13 @@ public:
 		cellSize = Vector2(200, 200);
 
 		rootActor = CreateActor(nullptr);
-		Sprite* spaceShipSprite = createSprite("data\\spaceship.png");
-		Sprite* asteroidSprite = createSprite("data\\big_asteroid.png");
+		spaceShipSprite = createSprite("data\\spaceship.png");
+		asteroidSprite = createSprite("data\\big_asteroid.png");
+		bulletSprite = createSprite("data\\bullet.png");
 
-		SpaceShip(spaceShipSprite);
+		CreateSpaceShip(spaceShipSprite);
 
-		for (int i = 0; i < 100; i++)
+		for (int i = 0; i < 10; i++)
 		{
 			CreateAsteroid(asteroidSprite);
 		}
@@ -93,16 +112,30 @@ public:
 		return actor;
 	}
 
-	void SpaceShip(Sprite* sprite)
+	void CreateSpaceShip(Sprite* sprite)
 	{
 		spaceShip = CreateActor(rootActor->GetComponent<Transform>());
 
 		spaceShip->AddComponent<RenderComponent>(new RenderComponent(sprite));
 		spaceShip->AddComponent<MoveComponent>(new MoveComponent(Vector2::one));
+		spaceShip->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), false));
+
+
+		float x = screenSize.x * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		float y = screenSize.y * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+		spaceShip->GetComponent<Transform>()->localPosition = Vector2(x, y);
+
+
 	}
 
 	void CreateAsteroid(Sprite* sprite)
 	{
+		if (spaceShip == nullptr)
+		{
+			return;
+		}
+
 		Actor* asteroid = CreateActor(rootActor->GetComponent<Transform>());
 	    
 		asteroid->AddComponent<RenderComponent>(new RenderComponent(sprite));
@@ -121,22 +154,54 @@ public:
 
 		float distance = position.Distance(spaceShipPosition);
 
-		if (distance < 100)
+		if (distance < 200)
 		{
-			position += (position - spaceShipPosition).Normalized() * 100;
+			position += (position - spaceShipPosition).Normalized() * 200;
 		}
 
 		asteroid->GetComponent<Transform>()->localPosition = position;
 
 		asteroid->AddComponent<MoveComponent>(new MoveComponent(velocityDirection));
 		asteroid->AddComponent<AsteroidComponent>(new AsteroidComponent());
-		
+
+		asteroid->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), true));
+	}
+
+	void CreateBullet(Actor* parent)
+	{
+		if (spaceShip == nullptr)
+		{
+			return;
+		}
+
+		Actor* bullet = CreateActor(rootActor->GetComponent<Transform>());
+
+		RenderComponent* parentRenderComponent = parent->GetComponent<RenderComponent>();
+
+		Vector2 parentSize = GetSpriteSize(parentRenderComponent->GetSprite());
+
+		Transform* transformBullet = bullet->GetComponent<Transform>();
+
+		Vector2 spawnPosition = parent->GetComponent<Transform>()->GetWorldPosition();
+
+		transformBullet->localPosition = Vector2(spawnPosition.x + parentSize.x / 2, spawnPosition.y + parentSize.y / 2);
+
+		bullet->AddComponent<RenderComponent>(new RenderComponent(bulletSprite));
+		bullet->AddComponent<MoveComponent>(new MoveComponent(Vector2(10,10)));
+		bullet->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(bulletSprite), false));
+		bullet->AddComponent<BulletComponent>(new BulletComponent());
+
+		actors.push_back(bullet);
+	}
+
+	Vector2 GetSpriteSize(Sprite* sprite)
+	{
 		int widht;
 		int height;
 
 		getSpriteSize(sprite, widht, height);
 
-		asteroid->AddComponent<ColliderComponent>(new ColliderComponent(Vector2(widht , height)));
+		return Vector2(widht, height);
 	}
 
 	virtual bool Tick() 
@@ -144,6 +209,14 @@ public:
         drawTestBackground();
 
 		Time::instance().CalculateDeltaTime();
+
+		OnFire();
+
+		MovePlayer();
+
+		std::set<Actor*> actorsToDestroy;
+
+		//std::vector<Actor*> actorsToDestroy;
 
 		std::vector<int> moveComponentIndexes, transformIndexes;
 
@@ -157,8 +230,10 @@ public:
 		}
 
 		std::vector<int> collision_transforms, collision_colliders, collision_moves;
+		std::vector<Actor*> collisionActors;
 
 		Move(moveComponentIndexes, transformIndexes);
+
 		for (int i = 0; i < actors.size(); i++)
 		{
 			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<ColliderComponent>() && actors[i]->HasComponent<MoveComponent>())
@@ -166,10 +241,13 @@ public:
 				collision_transforms.push_back(actors[i]->GetComponentIndex<Transform>());
 				collision_colliders.push_back(actors[i]->GetComponentIndex<ColliderComponent>());
 				collision_moves.push_back(actors[i]->GetComponentIndex<MoveComponent>());
+				collisionActors.push_back(actors[i]);
 			}
 		}
 
-		Collision(collision_colliders, collision_moves, collision_transforms);
+		Collision(collisionActors, &actorsToDestroy ,collision_colliders, collision_moves, collision_transforms);
+		
+		DestroyActors(&actorsToDestroy);
 
 		std::vector<int> renders, transforms;
 
@@ -182,9 +260,7 @@ public:
 			}
 		}
 
-
 		Render(renders, transforms);
-		//spaceSheep->Tick();
 
 		return false;
 	}
@@ -196,58 +272,38 @@ public:
 
 	virtual void onMouseButtonClick(FRMouseButton button, bool isReleased) 
 	{
-
+		InputMouse(button, isReleased);
 	}
 
 	virtual void onKeyPressed(FRKey k) 
 	{
-		if (k == FRKey::UP)
-		{
-			//playerMoveComponent->MoveUp();
-		}
-
-		if (k == FRKey::DOWN)
-		{
-			//playerMoveComponent->MoveDown();
-		}
-
-		if (k == FRKey::RIGHT)
-		{
-			//playerMoveComponent->MoveRight();
-		}
-
-		if (k == FRKey::LEFT)
-		{
-			//playerMoveComponent->MoveLeft();
-		}
+		InputKeyboard(k, false);
 	}
 
 	virtual void onKeyReleased(FRKey k) 
 	{
-		if (k == FRKey::UP)
-		{
-			//playerMoveComponent->StopMoveUp();
-		}
-
-		if (k == FRKey::DOWN)
-		{
-			//playerMoveComponent->StopMoveDown();
-		}
-
-		if (k == FRKey::RIGHT)
-		{
-			//playerMoveComponent->StopMoveRight();
-		}
-
-		if (k == FRKey::LEFT)
-		{
-			//playerMoveComponent->StopMoveLeft();
-		}
+		InputKeyboard(k, true);
 	}
 	
 	virtual const char* GetTitle() override
 	{
 		return "asteroids";
+	}
+
+	void MovePlayer()
+	{
+		if (spaceShip == nullptr)
+		{
+			return;
+		}
+
+		MoveComponent* moveComponent = spaceShip->GetComponent<MoveComponent>();
+
+		moveComponent->velocity -= moveComponent->velocity.Normalized() * spaceShipSpeed * (Time::instance().deltaTime * spaceShipDeaceleration);
+
+		moveComponent->velocity += input->direction * spaceShipSpeed;
+
+		moveComponent->velocity.Clamp(Vector2(spaceShipSpeed, spaceShipSpeed));
 	}
 
 	void Move(std::vector<int> moveComponentIndexes, std::vector<int> transformIndexes)
@@ -275,7 +331,7 @@ public:
 		}
 	}
 
-	void Collision(std::vector<int> colliderComnponentIndexes, std::vector<int> moveComponentIndexes, std::vector<int> transformIndexes)
+	void Collision(std::vector<Actor*> actors, std::set<Actor*>* actorsToDestroy, std::vector<int> colliderComnponentIndexes, std::vector<int> moveComponentIndexes, std::vector<int> transformIndexes)
 	{
 		int cells_x = screenSize.x / cellSize.x, cells_y = screenSize.y / cellSize.y;
 
@@ -290,12 +346,14 @@ public:
 			ColliderComponent* colliderComponent = (static_cast<ColliderComponent*>(colliders->at(colliderComnponentIndexes[i])));
 			MoveComponent* moveComponent = (static_cast<MoveComponent*>(moveComponents->at(moveComponentIndexes[i])));
 			Transform* transform = (static_cast<Transform*>(transforms->at(transformIndexes[i])));
+			Actor* actor = actors.at(i);
 
 			ColliderComponentData collisionContainer = ColliderComponentData();
 
 			collisionContainer.collider = colliderComponent;
 			collisionContainer.moveComponent = moveComponent;
 			collisionContainer.transform = transform;
+			collisionContainer.actor = actor;
 			
 			Vector2 pos = transform->GetWorldPosition();
 			Vector2 size = colliderComponent->GetSize();
@@ -330,7 +388,11 @@ public:
 					{
 						if (cells[i, j][l].collider != cells[i, j][k].collider)
 						{
-							CheckCollide(cells[i, j][l], cells[i, j][k]);
+							if (!CheckPhysicsCollide(cells[i, j][l], cells[i, j][k]))
+							{
+								actorsToDestroy->insert(cells[i, j][l].actor);
+								actorsToDestroy->insert(cells[i, j][k].actor);
+							}
 						}
 					}
 				}
@@ -346,8 +408,9 @@ public:
 	}
 
 
-	void CheckCollide(ColliderComponentData data1, ColliderComponentData data2)
+	bool CheckPhysicsCollide(ColliderComponentData data1, ColliderComponentData data2)
 	{
+		
 		Vector2 position1 = data1.transform->GetWorldPosition();
 		Vector2 position2 = data2.transform->GetWorldPosition();
 
@@ -358,6 +421,12 @@ public:
 			|| isInsideBox(Vector2(position1.x, size1.y + position1.y).WrapAround(screenSize) - position2, size2)
 			|| isInsideBox((position1 + size1).WrapAround(screenSize) - position2, size2))
 		{
+
+			if (!data1.collider->shouldCollide || !data2.collider->shouldCollide)
+			{
+				return false;
+			}
+
 			Vector2 tmpVelocity = data1.moveComponent->velocity;
 			data1.moveComponent->velocity = data2.moveComponent->velocity;
 			data2.moveComponent->velocity = tmpVelocity;
@@ -386,19 +455,15 @@ public:
 			}
 			Vector2 distance = center1 - center2;
 
-			printf("???? %f %f \n", distance.x, distance.y);
-
 			Vector2 shift;
 
 			if (abs(distance.x / totalSize.x) > abs(distance.y / totalSize.y))
 			{
 				shift = (distance * (abs(totalSize.x / distance.x) - 1)) * 0.5;
-				printf("!!!%f %f\n", totalSize.x, distance.x);
 			}
 			else
 			{
 				shift = (distance * (abs(totalSize.y / distance.y) - 1)) * 0.5;
-				printf("!!%f %f\n", totalSize.y, distance.y);
 			}
 
 			data1.transform->localPosition += shift;
@@ -409,6 +474,7 @@ public:
 			printf("%f %f\n", data1.transform->localPosition.x, data1.transform->localPosition.y);
 		}
 
+		return true;
 	}
 
 	bool isInsideBox(Vector2 point, Vector2 size)
@@ -416,7 +482,86 @@ public:
 		return point.x > 0 && point.y > 0 && point.x < size.x && point.y < size.y;
 	}
 
+	void OnFire()
+	{
+		if (input->isMouseDown)
+		{
+			CreateBullet(spaceShip);
+			input->isMouseDown = false;
+		}
+	}
 
+	void InputMouse(FRMouseButton mouseButton, bool isReleased)
+	{
+		if (!isReleased)
+		{
+			input->isMouseDown = true;
+		}
+	}
+
+	void InputKeyboard(FRKey key, bool isReleased)
+	{
+		if (key == FRKey::UP && !isReleased)
+		{
+			input->direction += Vector2(0, -1);
+		}
+
+		else if(key == FRKey::UP && isReleased)
+		{
+			input->direction += Vector2(0, 1);
+		}
+
+		else if (key == FRKey::DOWN && !isReleased)
+		{
+			input->direction += Vector2(0, 1);
+		}
+
+		else if (key == FRKey::DOWN && isReleased)
+		{
+			input->direction += Vector2(0, -1);
+		}
+
+		else if (key == FRKey::RIGHT && !isReleased)
+		{
+			input->direction += Vector2(1, 0);
+		}
+
+		else if (key == FRKey::RIGHT && isReleased)
+		{
+			input->direction += Vector2(-1, 0);
+		}
+
+		else if (key == FRKey::LEFT && !isReleased)
+		{
+			input->direction += Vector2(-1, 0);
+		}
+
+		else if (key == FRKey::LEFT && isReleased)
+		{
+			input->direction += Vector2(1, 0);
+		}
+	}
+
+	void DestroyActors(std::set<Actor*>* actorsToDestroy)
+	{
+		for (auto actor : *actorsToDestroy)
+		{
+			actors.erase(std::remove(actors.begin(), actors.end(), actor), actors.end());
+
+			if (actor == spaceShip)
+			{
+				spaceShip = nullptr;
+			}
+
+			delete actor;
+		}	
+
+		if (spaceShip == nullptr)
+		{
+			printf("AAAAAAAAAAAA");
+			CreateSpaceShip(spaceShipSprite);
+		}
+	}
 };
 
 int main(int argc, char *argv[])

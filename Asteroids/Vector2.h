@@ -4,14 +4,17 @@ struct Vector2
 {
 	Vector2();
 	Vector2(float x, float y);
+
 	Vector2 operator+ (Vector2 const& vector);
 	void operator+= (Vector2 const& vector);
 	Vector2 operator- (Vector2 const& vector);
 	void operator-= (Vector2 const& vector);
 	Vector2 operator* (float const& value);
+	void operator*= (Vector2 const& value);
 	Vector2 operator% (Vector2 const& value);
 	void operator%= (Vector2 const& value);
-
+	
+	void Clamp(Vector2 max);
 	float Distance(Vector2 const& vector);
 	Vector2 WrapAround(Vector2 const& value);
 

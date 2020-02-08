@@ -9,5 +9,6 @@ struct ColliderComponentData
 	Transform* transform;
 	MoveComponent* moveComponent;
 	ColliderComponent* collider;
+	Actor* actor;
 };
 

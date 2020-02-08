@@ -6,9 +6,7 @@ RenderComponent::RenderComponent(Sprite* sprite)
 
 RenderComponent::~RenderComponent()
 {
-	destroySprite(sprite);
 
-	sprite = nullptr;
 }
 
 
