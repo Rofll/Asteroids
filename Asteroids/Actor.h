@@ -50,7 +50,19 @@ public:
 		return components[typeid(T)];
 	}
 
+	bool IsMarkedAsDestroyed()
+	{
+		return destroyed;
+	}
+
+	void MarkAsDestroyed() 
+	{
+		destroyed = true;
+	}
+
+
 private:
 	World* world;
+	bool destroyed = false;
 	std::unordered_map<std::type_index, int> components;
 };

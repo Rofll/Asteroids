@@ -1,7 +1,8 @@
 #include "RenderComponent.h"
-RenderComponent::RenderComponent(Sprite* sprite)
+RenderComponent::RenderComponent(Sprite* sprite, int order)
 {
 	this->sprite = sprite;
+	this->order = order;
 }
 
 RenderComponent::~RenderComponent()

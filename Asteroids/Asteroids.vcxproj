@@ -146,6 +146,8 @@
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="AbstractComponent.cpp" />
+    <ClCompile Include="ActorType.cpp" />
+    <ClCompile Include="Aim.cpp" />
     <ClCompile Include="AsteroidComponent.cpp" />
     <ClCompile Include="BulletComponent.cpp" />
     <ClCompile Include="ColliderComponent.cpp" />
@@ -154,6 +156,7 @@
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="MoveComponent.cpp" />
     <ClCompile Include="RenderComponent.cpp" />
+    <ClCompile Include="RenderModel.cpp" />
     <ClCompile Include="SpaceSheep.cpp" />
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -163,6 +166,8 @@
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="AbstractComponent.h" />
+    <ClInclude Include="ActorType.h" />
+    <ClInclude Include="Aim.h" />
     <ClInclude Include="AsteroidComponent.h" />
     <ClInclude Include="BulletComponent.h" />
     <ClInclude Include="ColliderComponent.h" />
@@ -171,6 +176,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="MoveComponent.h" />
     <ClInclude Include="RenderComponent.h" />
+    <ClInclude Include="RenderModel.h" />
     <ClInclude Include="SpaceSheep.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="Transform.h" />
