@@ -13,6 +13,7 @@ struct Vector2
 	void operator*= (Vector2 const& value);
 	Vector2 operator% (Vector2 const& value);
 	void operator%= (Vector2 const& value);
+	bool operator== (Vector2 const& value);
 	
 	void Clamp(Vector2 max);
 	float Distance(Vector2 const& vector);

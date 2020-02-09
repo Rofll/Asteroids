@@ -4,7 +4,8 @@ enum ActorType
 {
 	None = 0,
 	Player,
-	Enemy,
+	AsteroidBig,
+	AsteroidSmall,
 	Bullet
 };
 

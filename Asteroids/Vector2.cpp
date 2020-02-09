@@ -106,6 +106,16 @@
 		this->y = fmod(this->y, value.y);
 	}
 
+	bool Vector2::operator== (Vector2 const& value)
+	{
+		if (this->x = value.x && this->y == value.y)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 
 	const Vector2 Vector2::zero = Vector2(0, 0);
 	const Vector2 Vector2::one = Vector2(1, 1);

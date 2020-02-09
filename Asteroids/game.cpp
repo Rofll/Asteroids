@@ -50,23 +50,32 @@ public:
 	const float minVelocity = 30;
 	const float maxVelocity = 50;
 
-	const float spaceShipSpeed = 100;
+	const float spaceShipSpeed = 200;
 	const float spaceShipDeaceleration = 2;
 
-	const float bulletSpeed = 100;
+	const float bulletSpeed = 500;
 
 	Sprite* spaceShipSprite;
 	Sprite* asteroidSprite;
+	Sprite* smallAsteroidSprite;
 	Sprite* bulletSprite;
 	Sprite* aimSprite;
 	Sprite* bgSprite;
 
 	bool isFire = false;
 
+	int maxAsteroidsCount = 10;
+	int currentAstreriodsCount = 0;
+
 	std::vector<Actor*> actors;
 
 	Vector2 mousePosition;
 	Vector2 aimOffset;
+
+	int maxBullets = 3;
+	std::vector<Actor*> totalBullets;
+
+	std::set<Actor*> actorsToDestroy;
 
 
 	int score = 0;
@@ -108,6 +117,7 @@ public:
 		rootActor = CreateActor(nullptr);
 		spaceShipSprite = createSprite("data\\spaceship.png");
 		asteroidSprite = createSprite("data\\big_asteroid.png");
+		smallAsteroidSprite = createSprite("data\\small_asteroid.png");
 		bulletSprite = createSprite("data\\bullet.png");
 		aimSprite = createSprite("data\\circle.tga");
 		bgSprite = createSprite("data\\background.png");
@@ -124,9 +134,10 @@ public:
 		aimOffset = Vector2(aimSize.x / 2, aimSize.y / 2);;
 
 		aim->GetComponent<Transform>()->localPosition -= aimOffset;
-		for (int i = 0; i < 20; i++)
+
+		for (int i = 0; i < maxAsteroidsCount; i++)
 		{
-			CreateAsteroid(asteroidSprite);
+			CreateRandomAsteroid();
 		}
 
 		score = 0;
@@ -169,6 +180,21 @@ public:
 
 	}
 
+	void CreateRandomAsteroid()
+	{
+		int rand = std::rand() % 2;
+
+		if (rand == 0)
+		{
+			CreateAsteroid(asteroidSprite);
+		}
+
+		else
+		{
+			CreateSmallAsteroid(smallAsteroidSprite, Vector2(-1, -1));
+		}
+	}
+
 	void CreateAsteroid(Sprite* sprite)
 	{
 		if (spaceShip == nullptr)
@@ -204,7 +230,55 @@ public:
 		asteroid->AddComponent<MoveComponent>(new MoveComponent(velocityDirection));
 		asteroid->AddComponent<AsteroidComponent>(new AsteroidComponent());
 
-		asteroid->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), true, ActorType::Enemy));
+		asteroid->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), true, ActorType::AsteroidBig));
+
+		currentAstreriodsCount++;
+	}
+	
+	void CreateSmallAsteroid(Sprite* sprite, Vector2 bigAsteroidPosition)
+	{
+		if (spaceShip == nullptr)
+		{
+			return;
+		}
+
+		Actor* asteroid = CreateActor(rootActor->GetComponent<Transform>());
+
+		asteroid->AddComponent<RenderComponent>(new RenderComponent(sprite, 0));
+
+		float velocity = (maxVelocity - minVelocity) * static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + minVelocity;
+		float angle = M_PI * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+		Vector2 velocityDirection = Vector2(cos(angle), sin(angle)) * velocity;
+
+		Vector2 spaceShipPosition = spaceShip->GetComponent<Transform>()->localPosition;
+
+
+		Vector2 position(bigAsteroidPosition.x, bigAsteroidPosition.y);
+
+		if (bigAsteroidPosition == Vector2(-1, -1))
+		{
+			float x = mapSize.x * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			float y = mapSize.y * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+			position = Vector2(x, y);
+
+			float distance = position.Distance(spaceShipPosition);
+
+			if (distance < 200)
+			{
+				position += (position - spaceShipPosition).Normalized() * 200;
+			}
+		}
+
+		asteroid->GetComponent<Transform>()->localPosition = position;
+
+		asteroid->AddComponent<MoveComponent>(new MoveComponent(velocityDirection));
+		asteroid->AddComponent<AsteroidComponent>(new AsteroidComponent());
+
+		asteroid->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), true, ActorType::AsteroidSmall));
+
+		currentAstreriodsCount++;
 	}
 
 	void CreateBullet(Actor* parent)
@@ -235,6 +309,15 @@ public:
 		bullet->AddComponent<MoveComponent>(new MoveComponent(Vector2(direction.x * bulletSpeed, direction.y * bulletSpeed)));
 		bullet->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(bulletSprite), false, ActorType::Bullet));
 		bullet->AddComponent<BulletComponent>(new BulletComponent());
+
+
+		totalBullets.push_back(bullet);
+
+		if (totalBullets.size() > maxBullets)
+		{
+			actorsToDestroy.insert(totalBullets[0]);
+			totalBullets.erase(totalBullets.begin());
+		}
 	}
 
 	Vector2 GetSpriteSize(Sprite* sprite)
@@ -256,10 +339,6 @@ public:
 		OnShot();
 
 		MovePlayer();
-
-		std::set<Actor*> actorsToDestroy;
-
-		//std::vector<Actor*> actorsToDestroy;
 
 		std::vector<int> moveComponentIndexes, transformIndexes;
 
@@ -309,6 +388,16 @@ public:
 		}
 
 		Render(renders, transforms);
+
+		if (currentAstreriodsCount < maxAsteroidsCount)
+		{
+			for (int i = currentAstreriodsCount; i < maxAsteroidsCount; i++)
+			{
+				CreateRandomAsteroid();
+			}
+		}
+
+		actorsToDestroy.erase(actorsToDestroy.begin(), actorsToDestroy.end());
 
 		return false;
 	}
@@ -507,16 +596,69 @@ public:
 						{
 							if (!CheckPhysicsCollide(cells[i][j][l], cells[i][j][k]))
 							{
-								if (cells[i][j][l].collider->actorType == ActorType::Enemy || cells[i][j][k].collider->actorType == ActorType::Enemy)
+								if (cells[i][j][l].collider->actorType == ActorType::AsteroidBig || cells[i][j][k].collider->actorType == ActorType::AsteroidBig)
 								{
 									if (cells[i][j][l].collider->actorType == ActorType::Bullet || cells[i][j][k].collider->actorType == ActorType::Bullet)
 									{
 										score++;
+
+
+										if (cells[i][j][l].collider->actorType == ActorType::Bullet)
+										{
+											totalBullets.erase(std::remove(totalBullets.begin(), totalBullets.end(), cells[i][j][l].actor), totalBullets.end());
+										}
+
+										else
+										{
+											totalBullets.erase(std::remove(totalBullets.begin(), totalBullets.end(), cells[i][j][k].actor), totalBullets.end());
+										}
+
+										if (cells[i][j][k].collider->actorType == AsteroidBig)
+										{
+											CreateSmallAsteroid(smallAsteroidSprite, cells[i][j][k].transform->GetWorldPosition());
+											CreateSmallAsteroid(smallAsteroidSprite, cells[i][j][k].transform->GetWorldPosition());
+										}
+
+										else
+										{
+											CreateSmallAsteroid(smallAsteroidSprite, cells[i][j][l].transform->GetWorldPosition());
+											CreateSmallAsteroid(smallAsteroidSprite, cells[i][j][l].transform->GetWorldPosition());
+										}
 									}
+
+
 									cells[i][j][l].actor->MarkAsDestroyed();
 									cells[i][j][k].actor->MarkAsDestroyed();
 									actorsToDestroy->insert(cells[i][j][l].actor);
 									actorsToDestroy->insert(cells[i][j][k].actor);
+
+									currentAstreriodsCount--;
+								}
+
+
+								else if (cells[i][j][l].collider->actorType == ActorType::AsteroidSmall || cells[i][j][k].collider->actorType == ActorType::AsteroidSmall)
+								{
+									if (cells[i][j][l].collider->actorType == ActorType::Bullet || cells[i][j][k].collider->actorType == ActorType::Bullet)
+									{
+										score++;
+
+										if (cells[i][j][l].collider->actorType == ActorType::Bullet)
+										{
+											totalBullets.erase(std::remove(totalBullets.begin(), totalBullets.end(), cells[i][j][l].actor), totalBullets.end());
+										}
+
+										else
+										{
+											totalBullets.erase(std::remove(totalBullets.begin(), totalBullets.end(), cells[i][j][k].actor), totalBullets.end());
+										}
+									}
+
+									cells[i][j][l].actor->MarkAsDestroyed();
+									cells[i][j][k].actor->MarkAsDestroyed();
+									actorsToDestroy->insert(cells[i][j][l].actor);
+									actorsToDestroy->insert(cells[i][j][k].actor);
+
+									currentAstreriodsCount--;
 								}
 							}
 						} 
