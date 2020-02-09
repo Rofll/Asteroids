@@ -34,7 +34,6 @@ class MyFramework : public Framework {
 public:
 
 	Actor* rootActor;
-	Actor* map;
 	Actor* spaceShip;
 	Actor* aim;
 
@@ -42,6 +41,7 @@ public:
 
 	Vector2 cellSize;
 
+	Vector2 mapSize;
 	Vector2 screenSize;
 
 	Input* input;
@@ -58,6 +58,7 @@ public:
 	Sprite* asteroidSprite;
 	Sprite* bulletSprite;
 	Sprite* aimSprite;
+	Sprite* bgSprite;
 
 	bool isFire = false;
 
@@ -95,7 +96,9 @@ public:
 
 		getScreenSize(screenWidth, screenHeight);
 
+		mapSize = Vector2(1000, 1000);
 		screenSize = Vector2(screenWidth, screenHeight);
+
 		cellSize = Vector2(200, 200);
 
 		rootActor = CreateActor(nullptr);
@@ -103,7 +106,11 @@ public:
 		asteroidSprite = createSprite("data\\big_asteroid.png");
 		bulletSprite = createSprite("data\\bullet.png");
 		aimSprite = createSprite("data\\circle.tga");
+		bgSprite = createSprite("data\\background.png");
 
+		
+
+		CreateSpaceShip(spaceShipSprite);
 		aim = CreateActor(rootActor->GetComponent<Transform>());
 
 		aim->AddComponent<RenderComponent>(new RenderComponent(aimSprite, 3));
@@ -113,10 +120,7 @@ public:
 		aimOffset = Vector2(aimSize.x / 2, aimSize.y / 2);;
 
 		aim->GetComponent<Transform>()->localPosition -= aimOffset;
-
-		CreateSpaceShip(spaceShipSprite);
-
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 20; i++)
 		{
 			CreateAsteroid(asteroidSprite);
 		}
@@ -150,8 +154,11 @@ public:
 		spaceShip->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), false, ActorType::Player));
 
 
-		float x = screenSize.x * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-		float y = screenSize.y * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		//float x = screenSize.x * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		//float y = screenSize.y * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+		float x = mapSize.x / 2;
+		float y = mapSize.y / 2;
 
 		spaceShip->GetComponent<Transform>()->localPosition = Vector2(x, y);
 
@@ -176,8 +183,8 @@ public:
 
 		Vector2 spaceShipPosition = spaceShip->GetComponent<Transform>()->localPosition;
 
-		float x = screenSize.x * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-		float y = screenSize.y * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		float x = mapSize.x * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		float y = mapSize.y * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
 		Vector2 position(x, y);
 
@@ -349,7 +356,7 @@ public:
 		{
 			Transform* transform = (static_cast<Transform*>(transforms->at(transformIndexes[i])));
 			transform->localPosition += (static_cast<MoveComponent*>(moveComponents->at(moveComponentIndexes[i])))->velocity * Time::instance().deltaTime;
-			transform->localPosition = transform->localPosition.WrapAround(screenSize);
+			transform->localPosition = transform->localPosition.WrapAround(mapSize);
 		}
 	}
 
@@ -360,6 +367,8 @@ public:
 
 		std::map<int, std::vector<RenderModel>> renderOrderMap;
 
+		Vector2 cameraPosition = spaceShip->GetComponent<Transform>()->GetWorldPosition() - screenSize * 0.5 + GetSpriteSize(spaceShipSprite) * 0.5;
+
 		for (int i = 0; i < renderers->size() && i < transformIndexes.size(); i++)
 		{
 			RenderComponent* renderComponent = static_cast<RenderComponent*>(renderers->at(renderComponentIndexes[i]));
@@ -369,20 +378,79 @@ public:
 			renderOrderMap[renderComponent->order].push_back(RenderModel(renderComponent->GetSprite(), worldPosition));
 		}
 
+		std::vector<Vector2> cameraShiftings = { Vector2::zero };
+
+		if ((cameraPosition).x < 0)
+		{
+			//left
+			cameraShiftings.push_back(Vector2(mapSize.x, 0));
+		}
+		else if ((cameraPosition + screenSize).x > mapSize.x)
+		{
+			//right
+			cameraShiftings.push_back(Vector2(-mapSize.x, 0));
+		}
+
+		if ((cameraPosition).y < 0)
+		{
+			//up
+			if (cameraShiftings.size() > 1)
+			{
+				cameraShiftings.push_back(Vector2(0, mapSize.y) + cameraShiftings[1]);
+			}
+			cameraShiftings.push_back(Vector2(0, mapSize.y));
+		}
+		else if ((cameraPosition + screenSize).y > mapSize.y)
+		{
+			//down
+			if (cameraShiftings.size() > 1)
+			{
+				cameraShiftings.push_back(Vector2(0, -mapSize.y) + cameraShiftings[1]);
+			}
+			cameraShiftings.push_back(Vector2(0, -mapSize.y));
+		}
+
+		for (Vector2 shift : cameraShiftings)
+		{
+			printf("1");
+			Vector2 bgsize = GetSpriteSize(bgSprite);
+
+			for (int i = 0; i < 1 + mapSize.x / bgsize.x; i++)
+			{
+				for (int j = 0; j < 1 + mapSize.y / bgsize.y; j++)
+				{
+					drawSprite(bgSprite, i * bgsize.x - cameraPosition.x - shift.x, j * bgsize.y - cameraPosition.y - shift.y);
+				}
+			}
+			
+
+			
+		}
+
 		for (int i = 0; i < renderOrderMap.size(); i++)
 		{
 			for (int j = 0; j < renderOrderMap[i].size(); j++)
 			{
-				RenderModel renderModel = renderOrderMap[i][j];
-
-				drawSprite(renderModel.sprite, renderModel.positionWorld.x, renderModel.positionWorld.y);
+				for (Vector2 shift : cameraShiftings)
+				{
+					RenderModel renderModel = renderOrderMap[i][j];
+					drawSprite(renderModel.sprite,
+						renderModel.positionWorld.x - cameraPosition.x - shift.x,
+						renderModel.positionWorld.y - cameraPosition.y - shift.y);
+				}
 			}
+
 		}
+
+		printf("\n");
+
+		
+		
 	}
 
 	void Collision(std::vector<Actor*> actors, std::set<Actor*>* actorsToDestroy, std::vector<int> colliderComnponentIndexes, std::vector<int> moveComponentIndexes, std::vector<int> transformIndexes)
 	{
-		int cells_x = screenSize.x / cellSize.x, cells_y = screenSize.y / cellSize.y;
+		int cells_x = mapSize.x / cellSize.x, cells_y = mapSize.y / cellSize.y;
 
 		std::vector<ColliderComponentData>** cells = new std::vector<ColliderComponentData> * [cells_x];
 		for (int i = 0; i < cells_x; i++)
@@ -471,7 +539,7 @@ public:
 
 	Vector2Int positionToCellIndex(Vector2 pos, Vector2 cellSize)
 	{
-		Vector2 wrapped = pos.WrapAround(screenSize);
+		Vector2 wrapped = pos.WrapAround(mapSize);
 		auto v = Vector2Int(floor(wrapped.x / cellSize.x), floor(wrapped.y / cellSize.y));
 		return v;
 	}
@@ -486,9 +554,9 @@ public:
 		Vector2 size1 = data1.collider->GetSize();
 		Vector2 size2 = data2.collider->GetSize();
 
-		if (isInsideBox(position1 - position2, size2) || isInsideBox(Vector2(position1.x + size1.x, position1.y).WrapAround(screenSize) - position2, size2)
-			|| isInsideBox(Vector2(position1.x, size1.y + position1.y).WrapAround(screenSize) - position2, size2)
-			|| isInsideBox((position1 + size1).WrapAround(screenSize) - position2, size2))
+		if (isInsideBox(position1 - position2, size2) || isInsideBox(Vector2(position1.x + size1.x, position1.y).WrapAround(mapSize) - position2, size2)
+			|| isInsideBox(Vector2(position1.x, size1.y + position1.y).WrapAround(mapSize) - position2, size2)
+			|| isInsideBox((position1 + size1).WrapAround(mapSize) - position2, size2))
 		{
 
 			if (!data1.collider->shouldCollide || !data2.collider->shouldCollide)
@@ -506,21 +574,21 @@ public:
 			Vector2 center1 = (position1 + size1 * 0.5);
 			Vector2 center2 = (position2 + size2 * 0.5);
 
-			if ((position1 + size1).x > screenSize.x)
+			if ((position1 + size1).x > mapSize.x)
 			{
-				center1.x -= screenSize.x;
+				center1.x -= mapSize.x;
 			}
-			if ((position1 + size1).y > screenSize.y)
+			if ((position1 + size1).y > mapSize.y)
 			{
-				center1.y -= screenSize.y;
+				center1.y -= mapSize.y;
 			}
-			if ((position2 + size2).x > screenSize.x)
+			if ((position2 + size2).x > mapSize.x)
 			{
-				center2.x -= screenSize.x;
+				center2.x -= mapSize.x;
 			}
-			if ((position2 + size2).y > screenSize.y)
+			if ((position2 + size2).y > mapSize.y)
 			{
-				center2.y -= screenSize.y;
+				center2.y -= mapSize.y;
 			}
 			Vector2 distance = center1 - center2;
 
@@ -536,9 +604,9 @@ public:
 			}
 
 			data1.transform->localPosition += shift;
-			data1.transform->localPosition = data1.transform->localPosition.WrapAround(screenSize);
+			data1.transform->localPosition = data1.transform->localPosition.WrapAround(mapSize);
 			data2.transform->localPosition -= shift;
-			data2.transform->localPosition = data2.transform->localPosition.WrapAround(screenSize);
+			data2.transform->localPosition = data2.transform->localPosition.WrapAround(mapSize);
 			//printf("%f %f\n", data2.transform->localPosition.x, data2.transform->localPosition.y);
 			//printf("%f %f\n", data1.transform->localPosition.x, data1.transform->localPosition.y);
 		}

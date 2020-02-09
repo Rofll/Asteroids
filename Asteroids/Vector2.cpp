@@ -15,7 +15,15 @@
 
 	Vector2 Vector2::Normalized()
 	{
-		return *this * (1 / sqrt(x * x + y * y));
+		if (x != 0 || y != 0)
+		{
+			return *this * (1 / sqrt(x * x + y * y));
+		}
+
+		else
+		{
+			return Vector2::one;
+		}
 	}
 
 	void Vector2::Clamp(Vector2 max)
