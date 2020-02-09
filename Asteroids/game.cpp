@@ -43,6 +43,7 @@ public:
 
 	Vector2 mapSize;
 	Vector2 screenSize;
+	Vector2 cameraPosition;
 
 	Input* input;
 		
@@ -69,6 +70,9 @@ public:
 
 
 	int score = 0;
+
+	int maxActorsToDelete = 20;
+	int currentActorsToDelete = 0;
 
 	MyFramework()
 	{
@@ -224,7 +228,7 @@ public:
 
 		transformBullet->localPosition = spawnPosition;
 
-		Vector2 direction = (mousePosition - spawnPosition).Normalized();
+		Vector2 direction = (mousePosition - screenSize * 0.5).Normalized();
 		
 
 		bullet->AddComponent<RenderComponent>(new RenderComponent(bulletSprite, 1));
@@ -288,6 +292,11 @@ public:
 		
 		DestroyActors(&actorsToDestroy);
 
+
+		cameraPosition = spaceShip->GetComponent<Transform>()->GetWorldPosition() - screenSize * 0.5 + GetSpriteSize(spaceShipSprite) * 0.5;
+
+		aim->GetComponent<Transform>()->localPosition = mousePosition - aimOffset + cameraPosition;
+
 		std::vector<int> renders, transforms;
 
 		for (int i = 0; i < actors.size(); i++)
@@ -298,8 +307,6 @@ public:
 				transforms.push_back(actors[i]->GetComponentIndex<Transform>());
 			}
 		}
-
-		aim->GetComponent<Transform>()->localPosition = mousePosition - aimOffset;
 
 		Render(renders, transforms);
 
@@ -367,8 +374,6 @@ public:
 
 		std::map<int, std::vector<RenderModel>> renderOrderMap;
 
-		Vector2 cameraPosition = spaceShip->GetComponent<Transform>()->GetWorldPosition() - screenSize * 0.5 + GetSpriteSize(spaceShipSprite) * 0.5;
-
 		for (int i = 0; i < renderers->size() && i < transformIndexes.size(); i++)
 		{
 			RenderComponent* renderComponent = static_cast<RenderComponent*>(renderers->at(renderComponentIndexes[i]));
@@ -412,7 +417,6 @@ public:
 
 		for (Vector2 shift : cameraShiftings)
 		{
-			printf("1");
 			Vector2 bgsize = GetSpriteSize(bgSprite);
 
 			for (int i = 0; i < 1 + mapSize.x / bgsize.x; i++)
@@ -422,9 +426,6 @@ public:
 					drawSprite(bgSprite, i * bgsize.x - cameraPosition.x - shift.x, j * bgsize.y - cameraPosition.y - shift.y);
 				}
 			}
-			
-
-			
 		}
 
 		for (int i = 0; i < renderOrderMap.size(); i++)
@@ -441,10 +442,6 @@ public:
 			}
 
 		}
-
-		printf("\n");
-
-		
 		
 	}
 
@@ -690,13 +687,29 @@ public:
 				spaceShip = nullptr;
 			}
 
+			currentActorsToDelete++;
+
 			delete actor;
 		}	
 
 		if (spaceShip == nullptr)
 		{
-			printf("AAAAAAAAAAAA");
 			CreateSpaceShip(spaceShipSprite);
+		}
+
+		if (currentActorsToDelete > maxActorsToDelete)
+		{ 
+
+			/*auto bindingsMap = world->ResolveFragmentation();
+
+			for (auto actor : actors)
+			{
+				actor->ResolveComponentsReplacing(bindingsMap);
+			}
+
+			printf("DElete\n\n");
+
+			currentActorsToDelete = 0;*/
 		}
 	}
 };

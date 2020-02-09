@@ -60,6 +60,24 @@ public:
 		destroyed = true;
 	}
 
+	void ResolveComponentsReplacing(std::unordered_map<std::type_index, std::map<int, int>> map)
+	{
+		for (auto component = components.begin(); component != components.end(); component++)
+		{
+			//if (map.find(component->first) == map.end())
+			//{
+			//}
+
+			auto it = map[component->first].find(component->second);
+
+			if (it != map[component->first].end())
+			{
+				printf("Replace component from %i to %i\n", component->second, it->second);
+				component->second = it->second;
+			}
+		}
+	}
+
 
 private:
 	World* world;

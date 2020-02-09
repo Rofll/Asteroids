@@ -24,6 +24,10 @@ Actor::~Actor()
 		delete (worldComponents->at(it->second));
 
 		(*worldComponents)[it->second] = nullptr;
+
+
+		//printf("\nDeleted: %i %i\n", it->second, it->first);
+
 		//worldComponents->erase(worldComponents->begin() + it->second);
 	}
 }

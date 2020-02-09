@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <typeindex>
 #include "AbstractComponent.h"
+#include <map>
 class World
 {
 public:
@@ -28,6 +29,66 @@ public:
 	bool HasPull()
 	{
 		return components.find(typeid(T)) != components.end();
+	}
+
+	std::unordered_map<std::type_index, std::map<int, int>>  ResolveFragmentation()
+	{
+
+		std::unordered_map<std::type_index, std::map<int, int>> indexBindings;
+
+		for (auto vector = components.begin(); vector != components.end(); vector++)
+		{
+			indexBindings[vector->first] = {};
+
+			int counter = 0;
+			int reverseIndexer = vector->second->size() - 1;
+
+			for (int i = 0; i < vector->second->size(); i++)
+			{
+				if (vector->second->at(i) != nullptr)
+				{
+					continue;
+				}
+
+				if (i >= reverseIndexer)
+				{
+					break;
+				}
+
+				while (vector->second->at(reverseIndexer) == nullptr)
+				{
+					reverseIndexer--;
+				
+				}
+
+				printf("WorldReplace from: %i to %i in %i\n", reverseIndexer, i, vector->first);
+
+				indexBindings[vector->first][reverseIndexer] = i;
+
+				(*(vector->second))[i] = vector->second->at(reverseIndexer);
+
+				(*(vector->second))[reverseIndexer] = nullptr;
+
+				counter++;
+
+			}
+
+			if (counter > 0)
+			{
+				vector->second->erase(vector->second->begin() + (vector->second->size() - counter), vector->second->end());
+
+			}
+		}
+
+		/*for (auto i = components.begin(); i != components.end(); i++)
+		{
+			for (auto j = i->second->begin();  j != i->second->end();  j++)
+			{
+				printf("j == NUll: %i\n", components.at(i)->second.at(j) == nullptr);
+			}
+		}*/
+
+		return indexBindings;
 	}
 
 private:
