@@ -31,6 +31,11 @@ public:
 		return components.find(typeid(T)) != components.end();
 	}
 
+	void RemoveAllComponents()
+	{
+		components.erase(components.begin(), components.end());
+	}
+
 	std::unordered_map<std::type_index, std::map<int, int>>  ResolveFragmentation()
 	{
 

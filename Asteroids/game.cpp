@@ -83,6 +83,8 @@ public:
 	int maxActorsToDelete = 20;
 	int currentActorsToDelete = 0;
 
+	bool isGame = false;
+
 	MyFramework()
 	{
 
@@ -114,7 +116,7 @@ public:
 
 		cellSize = Vector2(200, 200);
 
-		rootActor = CreateActor(nullptr);
+		
 		spaceShipSprite = createSprite("data\\spaceship.png");
 		asteroidSprite = createSprite("data\\big_asteroid.png");
 		smallAsteroidSprite = createSprite("data\\small_asteroid.png");
@@ -122,7 +124,54 @@ public:
 		aimSprite = createSprite("data\\circle.tga");
 		bgSprite = createSprite("data\\background.png");
 
+		StartGame();
+
+		showCursor(false);
+
+		return true;
+	}
+
+	virtual void Close() 
+	{
+
+	}
+
+	void Restart()
+	{
+		printf("RESTART!\n", score);
+
+		DestroyAllActors();
+		StartGame();
+	}
+
+	void GameOver()
+	{
+		isGame = false;
+
+		printf("Your Score: %i\n", score);
+	}
+
+	void DestroyAllActors()
+	{
 		
+		totalBullets.clear();
+
+		for (int i = 0; i < actors.size(); i++)
+		{
+			delete actors[i];
+		}
+
+		actors.clear();
+
+		//world->RemoveAllComponents();
+		
+		rootActor = nullptr;
+		spaceShip = nullptr;
+	}
+
+	void StartGame()
+	{
+		rootActor = CreateActor(nullptr);
 
 		CreateSpaceShip(spaceShipSprite);
 		aim = CreateActor(rootActor->GetComponent<Transform>());
@@ -140,16 +189,11 @@ public:
 			CreateRandomAsteroid();
 		}
 
+		currentActorsToDelete = 0;
+		currentAstreriodsCount = 0;
 		score = 0;
 
-		showCursor(false);
-
-		return true;
-	}
-
-	virtual void Close() 
-	{
-
+		isGame = true;
 	}
 
 	Actor* CreateActor(Transform* parent)
@@ -336,68 +380,80 @@ public:
 
 		Time::instance().CalculateDeltaTime();
 
-		OnShot();
-
-		MovePlayer();
-
-		std::vector<int> moveComponentIndexes, transformIndexes;
-
-		for (int i = 0; i < actors.size(); i++)
+		if (isGame)
 		{
-			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<MoveComponent>())
+			OnShot();
+
+			MovePlayer();
+
+			std::vector<int> moveComponentIndexes, transformIndexes;
+
+			for (int i = 0; i < actors.size(); i++)
 			{
-				moveComponentIndexes.push_back(actors[i]->GetComponentIndex<MoveComponent>());
-				transformIndexes.push_back(actors[i]->GetComponentIndex<Transform>());
+				if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<MoveComponent>())
+				{
+					moveComponentIndexes.push_back(actors[i]->GetComponentIndex<MoveComponent>());
+					transformIndexes.push_back(actors[i]->GetComponentIndex<Transform>());
+				}
 			}
+
+			std::vector<int> collision_transforms, collision_colliders, collision_moves;
+			std::vector<Actor*> collisionActors;
+
+			Move(moveComponentIndexes, transformIndexes);
+
+			for (int i = 0; i < actors.size(); i++)
+			{
+				if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<ColliderComponent>() && actors[i]->HasComponent<MoveComponent>())
+				{
+					collision_transforms.push_back(actors[i]->GetComponentIndex<Transform>());
+					collision_colliders.push_back(actors[i]->GetComponentIndex<ColliderComponent>());
+					collision_moves.push_back(actors[i]->GetComponentIndex<MoveComponent>());
+					collisionActors.push_back(actors[i]);
+				}
+			}
+
+			Collision(collisionActors, &actorsToDestroy, collision_colliders, collision_moves, collision_transforms);
+
+			//if (!isGame)
+			//{
+			//	return false;
+			//}
+
+			cameraPosition = spaceShip->GetComponent<Transform>()->GetWorldPosition() - screenSize * 0.5 + GetSpriteSize(spaceShipSprite) * 0.5;
+
+			aim->GetComponent<Transform>()->localPosition = mousePosition - aimOffset + cameraPosition;
+
+			std::vector<int> renders, transforms;
+
+			for (int i = 0; i < actors.size(); i++)
+			{
+				if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<RenderComponent>())
+				{
+					renders.push_back(actors[i]->GetComponentIndex<RenderComponent>());
+					transforms.push_back(actors[i]->GetComponentIndex<Transform>());
+				}
+			}
+
+			Render(renders, transforms);
+
+			if (currentAstreriodsCount < maxAsteroidsCount)
+			{
+				for (int i = currentAstreriodsCount; i < maxAsteroidsCount; i++)
+				{
+					CreateRandomAsteroid();
+				}
+			}
+
+			DestroyActors(&actorsToDestroy);
+
+			actorsToDestroy.erase(actorsToDestroy.begin(), actorsToDestroy.end());
 		}
 
-		std::vector<int> collision_transforms, collision_colliders, collision_moves;
-		std::vector<Actor*> collisionActors;
-
-		Move(moveComponentIndexes, transformIndexes);
-
-		for (int i = 0; i < actors.size(); i++)
+		else
 		{
-			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<ColliderComponent>() && actors[i]->HasComponent<MoveComponent>())
-			{
-				collision_transforms.push_back(actors[i]->GetComponentIndex<Transform>());
-				collision_colliders.push_back(actors[i]->GetComponentIndex<ColliderComponent>());
-				collision_moves.push_back(actors[i]->GetComponentIndex<MoveComponent>());
-				collisionActors.push_back(actors[i]);
-			}
+			Restart();
 		}
-
-		Collision(collisionActors, &actorsToDestroy ,collision_colliders, collision_moves, collision_transforms);
-		
-		DestroyActors(&actorsToDestroy);
-
-
-		cameraPosition = spaceShip->GetComponent<Transform>()->GetWorldPosition() - screenSize * 0.5 + GetSpriteSize(spaceShipSprite) * 0.5;
-
-		aim->GetComponent<Transform>()->localPosition = mousePosition - aimOffset + cameraPosition;
-
-		std::vector<int> renders, transforms;
-
-		for (int i = 0; i < actors.size(); i++)
-		{
-			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<RenderComponent>())
-			{
-				renders.push_back(actors[i]->GetComponentIndex<RenderComponent>());
-				transforms.push_back(actors[i]->GetComponentIndex<Transform>());
-			}
-		}
-
-		Render(renders, transforms);
-
-		if (currentAstreriodsCount < maxAsteroidsCount)
-		{
-			for (int i = currentAstreriodsCount; i < maxAsteroidsCount; i++)
-			{
-				CreateRandomAsteroid();
-			}
-		}
-
-		actorsToDestroy.erase(actorsToDestroy.begin(), actorsToDestroy.end());
 
 		return false;
 	}
@@ -836,7 +892,8 @@ public:
 
 		if (spaceShip == nullptr)
 		{
-			CreateSpaceShip(spaceShipSprite);
+			GameOver();
+			//CreateSpaceShip(spaceShipSprite);
 		}
 
 		if (currentActorsToDelete > maxActorsToDelete)
