@@ -257,8 +257,6 @@ public:
 
 		Vector2 velocityDirection = Vector2(cos(angle), sin(angle)) * velocity;
 
-		printf("%f %f\n", velocityDirection.x / M_PI, velocityDirection.y / M_PI);
-
 		Vector2 spaceShipPosition = spaceShip->GetComponent<Transform>()->localPosition;
 
 		float x = mapSize.x * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -293,7 +291,7 @@ public:
 		asteroid->AddComponent<RenderComponent>(new RenderComponent(sprite, 0));
 
 		float velocity = (maxVelocity - minVelocity) * static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + minVelocity;
-		float angle = M_PI * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		float angle = 2 * M_PI * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
 		Vector2 velocityDirection = Vector2(cos(angle), sin(angle)) * velocity;
 
