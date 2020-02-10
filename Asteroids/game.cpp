@@ -1,15 +1,13 @@
 #include "Framework.h"
-#include "SpaceSheep.h"
 #include "Time.h"
 
 #include <ctime>
 
-//#include "ColliderComponentData.h"
-
 #include "MoveComponent.h"
-#include "AsteroidComponent.h"
 #include "ColliderComponent.h"
 #include "BulletComponent.h"
+#include "RenderComponent.h"
+
 #include "Input.h"
 
 #include "ColliderComponentData.h"
@@ -128,20 +126,8 @@ public:
 
 		input = new Input();
 
-
-		std::srand(unsigned(std::time(0)));
-
-		int screenWidth;
-		int screenHeight;
-
-		getScreenSize(screenWidth, screenHeight);
-
-		//mapSize = Vector2(1000, 1000);
-		//screenSize = Vector2(screenWidth, screenHeight);
-
 		cellSize = Vector2(200, 200);
 
-		
 		spaceShipSprite = createSprite("data\\spaceship.png");
 		asteroidSprite = createSprite("data\\big_asteroid.png");
 		smallAsteroidSprite = createSprite("data\\small_asteroid.png");
@@ -178,7 +164,6 @@ public:
 
 	void DestroyAllActors()
 	{
-		
 		totalBullets.clear();
 
 		for (int i = 0; i < actors.size(); i++)
@@ -187,8 +172,6 @@ public:
 		}
 
 		actors.clear();
-
-		//world->RemoveAllComponents();
 		
 		rootActor = nullptr;
 		spaceShip = nullptr;
@@ -237,16 +220,10 @@ public:
 		spaceShip->AddComponent<MoveComponent>(new MoveComponent(Vector2::one));
 		spaceShip->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), false, ActorType::Player));
 
-
-		//float x = screenSize.x * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-		//float y = screenSize.y * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-
 		float x = mapSize.x / 2;
 		float y = mapSize.y / 2;
 
 		spaceShip->GetComponent<Transform>()->localPosition = Vector2(x, y);
-
-
 	}
 
 	void CreateRandomAsteroid()
@@ -276,9 +253,11 @@ public:
 		asteroid->AddComponent<RenderComponent>(new RenderComponent(sprite, 0));
 
 		float velocity = (maxVelocity - minVelocity) * static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + minVelocity;
-		float angle = M_PI * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+		float angle = 2 * M_PI * static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
 		Vector2 velocityDirection = Vector2(cos(angle), sin(angle)) * velocity;
+
+		printf("%f %f\n", velocityDirection.x / M_PI, velocityDirection.y / M_PI);
 
 		Vector2 spaceShipPosition = spaceShip->GetComponent<Transform>()->localPosition;
 
@@ -297,8 +276,6 @@ public:
 		asteroid->GetComponent<Transform>()->localPosition = position;
 
 		asteroid->AddComponent<MoveComponent>(new MoveComponent(velocityDirection));
-		asteroid->AddComponent<AsteroidComponent>(new AsteroidComponent());
-
 		asteroid->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), true, ActorType::AsteroidBig));
 
 		currentAstreriodsCount++;
@@ -343,8 +320,6 @@ public:
 		asteroid->GetComponent<Transform>()->localPosition = position;
 
 		asteroid->AddComponent<MoveComponent>(new MoveComponent(velocityDirection));
-		asteroid->AddComponent<AsteroidComponent>(new AsteroidComponent());
-
 		asteroid->AddComponent<ColliderComponent>(new ColliderComponent(GetSpriteSize(sprite), true, ActorType::AsteroidSmall));
 
 		currentAstreriodsCount++;
@@ -819,8 +794,6 @@ public:
 			data1.transform->localPosition = data1.transform->localPosition.WrapAround(mapSize);
 			data2.transform->localPosition -= shift;
 			data2.transform->localPosition = data2.transform->localPosition.WrapAround(mapSize);
-			//printf("%f %f\n", data2.transform->localPosition.x, data2.transform->localPosition.y);
-			//printf("%f %f\n", data1.transform->localPosition.x, data1.transform->localPosition.y);
 		}
 
 		return true;
@@ -910,7 +883,6 @@ public:
 		if (spaceShip == nullptr)
 		{
 			GameOver();
-			//CreateSpaceShip(spaceShipSprite);
 		}
 
 		if (currentActorsToDelete > maxActorsToDelete)
