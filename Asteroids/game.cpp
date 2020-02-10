@@ -41,8 +41,8 @@ public:
 
 	Vector2 cellSize;
 
-	Vector2 mapSize;
-	Vector2 screenSize;
+	Vector2 mapSize = Vector2(1000, 1000);
+	Vector2 screenSize = Vector2(800, 600);
 	Vector2 cameraPosition;
 
 	Input* input;
@@ -83,17 +83,42 @@ public:
 	int maxActorsToDelete = 20;
 	int currentActorsToDelete = 0;
 
+	float abilityPorbability = 0.3;
+
 	bool isGame = false;
 
-	MyFramework()
+	MyFramework(Vector2Int windowSize, Vector2Int mapSize, int asteroidsNum, int ammoNum, float abilityPorbability)
 	{
+		if (windowSize.x > Vector2Int::zero.x && windowSize.y > Vector2Int::zero.y)
+		{
+			this->screenSize = Vector2(windowSize.x, windowSize.y);
+		}
 
+		if (mapSize.x > Vector2Int::zero.x && mapSize.y > Vector2Int::zero.y)
+		{
+			this->mapSize = Vector2(mapSize.x, mapSize.y);
+		}
+		
+		if (asteroidsNum > 0)
+		{
+			this->maxAsteroidsCount = asteroidsNum;
+		}
+		
+		if (ammoNum > 0)
+		{
+			this->maxBullets = ammoNum;
+		}
+		
+		if (abilityPorbability > 0)
+		{
+			this->abilityPorbability = abilityPorbability;
+		}
 	}
 
 	virtual void PreInit(int& width, int& height, bool& fullscreen)
 	{
-		width = 800;
-		height = 600;
+		width = screenSize.x;
+		height = screenSize.y;
 		fullscreen = false;
 	}
 
@@ -111,8 +136,8 @@ public:
 
 		getScreenSize(screenWidth, screenHeight);
 
-		mapSize = Vector2(1000, 1000);
-		screenSize = Vector2(screenWidth, screenHeight);
+		//mapSize = Vector2(1000, 1000);
+		//screenSize = Vector2(screenWidth, screenHeight);
 
 		cellSize = Vector2(200, 200);
 
@@ -380,80 +405,72 @@ public:
 
 		Time::instance().CalculateDeltaTime();
 
-		if (isGame)
-		{
-			OnShot();
-
-			MovePlayer();
-
-			std::vector<int> moveComponentIndexes, transformIndexes;
-
-			for (int i = 0; i < actors.size(); i++)
-			{
-				if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<MoveComponent>())
-				{
-					moveComponentIndexes.push_back(actors[i]->GetComponentIndex<MoveComponent>());
-					transformIndexes.push_back(actors[i]->GetComponentIndex<Transform>());
-				}
-			}
-
-			std::vector<int> collision_transforms, collision_colliders, collision_moves;
-			std::vector<Actor*> collisionActors;
-
-			Move(moveComponentIndexes, transformIndexes);
-
-			for (int i = 0; i < actors.size(); i++)
-			{
-				if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<ColliderComponent>() && actors[i]->HasComponent<MoveComponent>())
-				{
-					collision_transforms.push_back(actors[i]->GetComponentIndex<Transform>());
-					collision_colliders.push_back(actors[i]->GetComponentIndex<ColliderComponent>());
-					collision_moves.push_back(actors[i]->GetComponentIndex<MoveComponent>());
-					collisionActors.push_back(actors[i]);
-				}
-			}
-
-			Collision(collisionActors, &actorsToDestroy, collision_colliders, collision_moves, collision_transforms);
-
-			//if (!isGame)
-			//{
-			//	return false;
-			//}
-
-			cameraPosition = spaceShip->GetComponent<Transform>()->GetWorldPosition() - screenSize * 0.5 + GetSpriteSize(spaceShipSprite) * 0.5;
-
-			aim->GetComponent<Transform>()->localPosition = mousePosition - aimOffset + cameraPosition;
-
-			std::vector<int> renders, transforms;
-
-			for (int i = 0; i < actors.size(); i++)
-			{
-				if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<RenderComponent>())
-				{
-					renders.push_back(actors[i]->GetComponentIndex<RenderComponent>());
-					transforms.push_back(actors[i]->GetComponentIndex<Transform>());
-				}
-			}
-
-			Render(renders, transforms);
-
-			if (currentAstreriodsCount < maxAsteroidsCount)
-			{
-				for (int i = currentAstreriodsCount; i < maxAsteroidsCount; i++)
-				{
-					CreateRandomAsteroid();
-				}
-			}
-
-			DestroyActors(&actorsToDestroy);
-
-			actorsToDestroy.erase(actorsToDestroy.begin(), actorsToDestroy.end());
-		}
-
-		else
+		if (!isGame)
 		{
 			Restart();
 		}
+
+		OnShot();
+
+		MovePlayer();
+
+		std::vector<int> moveComponentIndexes, transformIndexes;
+
+		for (int i = 0; i < actors.size(); i++)
+		{
+			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<MoveComponent>())
+			{
+				moveComponentIndexes.push_back(actors[i]->GetComponentIndex<MoveComponent>());
+				transformIndexes.push_back(actors[i]->GetComponentIndex<Transform>());
+			}
+		}
+
+		std::vector<int> collision_transforms, collision_colliders, collision_moves;
+		std::vector<Actor*> collisionActors;
+
+		Move(moveComponentIndexes, transformIndexes);
+
+		for (int i = 0; i < actors.size(); i++)
+		{
+			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<ColliderComponent>() && actors[i]->HasComponent<MoveComponent>())
+			{
+				collision_transforms.push_back(actors[i]->GetComponentIndex<Transform>());
+				collision_colliders.push_back(actors[i]->GetComponentIndex<ColliderComponent>());
+				collision_moves.push_back(actors[i]->GetComponentIndex<MoveComponent>());
+				collisionActors.push_back(actors[i]);
+			}
+		}
+
+		Collision(collisionActors, &actorsToDestroy, collision_colliders, collision_moves, collision_transforms);
+
+		cameraPosition = spaceShip->GetComponent<Transform>()->GetWorldPosition() - screenSize * 0.5 + GetSpriteSize(spaceShipSprite) * 0.5;
+
+		aim->GetComponent<Transform>()->localPosition = mousePosition - aimOffset + cameraPosition;
+
+		std::vector<int> renders, transforms;
+
+		for (int i = 0; i < actors.size(); i++)
+		{
+			if (actors[i]->HasComponent<Transform>() && actors[i]->HasComponent<RenderComponent>())
+			{
+				renders.push_back(actors[i]->GetComponentIndex<RenderComponent>());
+				transforms.push_back(actors[i]->GetComponentIndex<Transform>());
+			}
+		}
+
+		Render(renders, transforms);
+
+		if (currentAstreriodsCount < maxAsteroidsCount)
+		{
+			for (int i = currentAstreriodsCount; i < maxAsteroidsCount; i++)
+			{
+				CreateRandomAsteroid();
+			}
+		}
+
+		DestroyActors(&actorsToDestroy);
+
+		actorsToDestroy.erase(actorsToDestroy.begin(), actorsToDestroy.end());
 
 		return false;
 	}
@@ -915,5 +932,85 @@ public:
 
 int main(int argc, char *argv[])
 {
-	return run(new MyFramework());
+	Vector2Int windowSize = Vector2Int(800, 600);
+	Vector2Int mapSize = Vector2Int(1000, 1000);
+	int asteroidsNum = 10;
+	int ammoNum = 3;
+	float abilityPorbability = 0.3;
+
+	std::vector<int> numbers;
+
+	const char* delim = "xX";
+	char* ptr;
+
+	if (argc > 1)
+	{
+		for (int i = 1; i < argc; i++)
+		{
+			if (strcmp(argv[i], "-window") == 0)
+			{
+				i++;
+
+				ptr = strtok(argv[i], delim);
+
+				while (ptr != nullptr)
+				{
+					numbers.push_back(atoi(ptr));
+					ptr = strtok(NULL, delim);
+
+				}
+
+				if (numbers.size() == 2)
+				{
+					windowSize = Vector2Int(numbers[0], numbers[1]);
+				}
+
+				numbers.clear();
+			}
+
+			if (strcmp(argv[i], "-map") == 0)
+			{
+				printf("Enter!\n");
+
+				i++;
+
+				ptr = strtok(argv[i], delim);
+
+				while (ptr != nullptr)
+				{
+					numbers.push_back(atoi(ptr));
+					ptr = strtok(NULL, delim);
+				}
+
+				if (numbers.size() >= 2)
+				{
+					mapSize = Vector2Int(numbers[0], numbers[1]);
+				}
+				
+				numbers.clear();
+			}
+
+			if (strcmp(argv[i], "-num_asteroids") == 0)
+			{
+				i++;
+				asteroidsNum = atoi(argv[i]);
+			}
+
+			if (strcmp(argv[i], "-num_ammo") == 0)
+			{
+				i++;
+				ammoNum = atoi(argv[i]);
+			}
+
+			if (strcmp(argv[i], "-ability_probability") == 0)
+			{
+				i++;
+				abilityPorbability = atof(argv[i]);
+			}
+		}
+	}
+
+	return run(new MyFramework(windowSize, mapSize, asteroidsNum, ammoNum, abilityPorbability));
+
+	return 0;
 }

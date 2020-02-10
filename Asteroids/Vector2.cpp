@@ -121,12 +121,6 @@
 	const Vector2 Vector2::one = Vector2(1, 1);
 
 
-
-
-
-
-
-
 	Vector2Int::Vector2Int()
 	{
 		this->x = 0;
